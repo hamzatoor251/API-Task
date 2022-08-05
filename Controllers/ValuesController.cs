@@ -14,9 +14,21 @@ namespace WebApplication3.Controllers
         // GET api/values
         public List<Student> Get()
         {
-            SQLDataHelper sqlData = new SQLDataHelper();
-            
-            return sqlData.GetStudentData();
+            //SQLDataHelper sqlData = new SQLDataHelper();
+            ObjectCache cache = MemoryCache.Default;
+            if (cache["students"] == null)
+            {
+                var cacheItemPolicy = new CacheItemPolicy
+                {
+                    AbsoluteExpiration = DateTimeOffset.Now.AddDays(1)
+                };
+                SQLDataHelper sqlData = new SQLDataHelper();
+                var cacheItem = new CacheItem("students", sqlData.GetStudentData());
+                cache.Add(cacheItem, cacheItemPolicy);
+            }
+            return (List<Student>)cache.Get("students");
+
+            //return sqlData.GetStudentData();
         }
 
         // GET api/values/5
